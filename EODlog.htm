@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loggy Journal Sync</title>
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <style>
+    :root {
+      --font-primary: 'Inter', sans-serif;
+      --font-display: 'Outfit', sans-serif;
+      
+      /* Dark Theme variables */
+      --bg-gradient: radial-gradient(circle at 50% 50%, #0f1026 0%, #070913 100%);
+      --card-bg: rgba(15, 23, 42, 0.45);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(139, 92, 246, 0.4);
+      --card-active-border: rgba(139, 92, 246, 0.75);
+      --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --card-glow: rgba(139, 92, 246, 0.15);
+      --header-bg: rgba(10, 15, 30, 0.75);
+      --text-muted: #94a3b8;
+      --input-bg: rgba(10, 15, 30, 0.5);
+      --input-border: rgba(255, 255, 255, 0.1);
+      --input-focus-border: rgba(139, 92, 246, 0.6);
+      --btn-save-bg: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+      --accent-color: #8b5cf6;
+      --badge-bg: rgba(139, 92, 246, 0.15);
+      --badge-text: #c084fc;
+    }
+
+    [data-bs-theme="light"] {
+      /* Light Theme variables */
+      --bg-gradient: radial-gradient(circle at 50% 50%, #f5f3ff 0%, #eef2f6 100%);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --card-hover-border: rgba(124, 58, 237, 0.4);
+      --card-active-border: rgba(124, 58, 237, 0.75);
+      --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+      --card-glow: rgba(124, 58, 237, 0.08);
+      --header-bg: rgba(255, 255, 255, 0.8);
+      --text-muted: #64748b;
+      --input-bg: rgba(255, 255, 255, 0.8);
+      --input-border: rgba(0, 0, 0, 0.12);
+      --input-focus-border: rgba(124, 58, 237, 0.6);
+      --btn-save-bg: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+      --accent-color: #7c3aed;
+      --badge-bg: rgba(124, 58, 237, 0.1);
+      --badge-text: #6d28d9;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      min-height: 100vh;
+      transition: background 0.4s ease;
+      padding-top: 100px;
+      padding-bottom: 50px;
+    }
+
+    h1, h2, h3, h4, h5, .brand-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+    }
+
+    /* Fixed Glass Header */
+    .glass-header {
+      background: var(--header-bg);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--card-border);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: background 0.4s ease, border-color 0.4s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Glass Cards */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .glass-card:hover {
+      border-color: var(--card-hover-border);
+      box-shadow: var(--card-shadow), 0 0 15px var(--card-glow);
+      transform: translateY(-2px);
+    }
+
+    .glass-card.active-card {
+      border-color: var(--card-active-border);
+      box-shadow: var(--card-shadow), 0 0 20px var(--card-glow);
+    }
+
+    /* Custom form elements */
+    .form-label-tag {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+      color: var(--badge-text);
+      background-color: var(--badge-bg);
+      padding: 4px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .disrupt-select {
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: inherit;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      padding: 0.25rem 2rem 0.25rem 0.75rem;
+      transition: all 0.3s ease;
+    }
+
+    .disrupt-select:focus {
+      border-color: var(--input-focus-border);
+      box-shadow: 0 0 0 0.25rem var(--card-glow);
+      background-color: var(--input-bg);
+      color: inherit;
+      outline: none;
+    }
+
+    .log-textarea {
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: inherit;
+      border-radius: 12px;
+      resize: vertical;
+      min-height: 110px;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      line-height: 1.5;
+    }
+
+    .log-textarea:focus {
+      background-color: var(--input-bg);
+      border-color: var(--input-focus-border);
+      box-shadow: 0 0 0 0.25rem var(--card-glow);
+      color: inherit;
+      outline: none;
+    }
+
+    .log-textarea::placeholder {
+      color: var(--text-muted);
+      opacity: 0.65;
+    }
+
+    /* Premium buttons */
+    .btn-gradient {
+      background: var(--btn-save-bg);
+      color: white;
+      border: none;
+      font-family: var(--font-display);
+      font-weight: 600;
+      border-radius: 12px;
+      padding: 10px 24px;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .btn-gradient:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+      color: white;
+      filter: brightness(1.1);
+    }
+
+    .btn-gradient:active:not(:disabled) {
+      transform: translateY(1px);
+      box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-gradient:disabled {
+      background: #475569;
+      box-shadow: none;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .btn-outline-glass {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      color: inherit;
+      font-family: var(--font-display);
+      font-weight: 500;
+      border-radius: 12px;
+      padding: 10px 16px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-glass:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--card-hover-border);
+      color: inherit;
+    }
+
+    /* Modal styling */
+    .modal-content-glass {
+      background: var(--header-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      color: inherit;
+      box-shadow: var(--card-shadow);
+    }
+
+    .modal-header, .modal-footer {
+      border: none;
+    }
+
+    /* Status indicator */
+    .badge-status {
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    /* Character Counter & Indicators */
+    .indicator-bar {
+      height: 4px;
+      border-radius: 2px;
+      width: 0%;
+      background: var(--accent-color);
+      transition: width 0.2s ease;
+      margin-top: -4px;
+      margin-left: 12px;
+      margin-right: 12px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--input-bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(124, 58, 237, 0.3);
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(124, 58, 237, 0.6);
+    }
+
+    /* Glass Toasts */
+    .toast-container {
+      z-index: 2000;
+    }
+    
+    .toast-glass {
+      background: var(--header-bg);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      color: inherit;
+    }
+
+    .toast-glass-header {
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--card-border);
+      color: inherit;
+      font-family: var(--font-display);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FIXED GLASS HEADER -->
+  <header class="glass-header py-3">
+    <div class="container-fluid px-4">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <!-- Logo and Brand -->
+        <div class="d-flex align-items-center">
+          <div class="bg-gradient p-2 rounded-3 me-3 d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; background: var(--btn-save-bg)">
+            <i class="bi bi-journal-check fs-5"></i>
+          </div>
+          <div>
+            <h1 class="brand-title h4 mb-0 d-inline-block align-middle me-2">Loggy Sync</h1>
+            <span id="pat-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle badge-status align-middle">
+              <i class="bi bi-shield-x me-1"></i>PAT Missing
+            </span>
+          </div>
+        </div>
+
+        <!-- System Controls -->
+        <div class="d-flex align-items-center gap-2">
+          <!-- Settings Button -->
+          <button id="btn-settings" class="btn btn-outline-glass d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#settingsModal">
+            <i class="bi bi-gear-fill"></i>
+            <span class="d-none d-md-inline">Settings</span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button id="btn-theme-toggle" class="btn btn-outline-glass d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;" title="Toggle light/dark theme">
+            <i id="theme-icon" class="bi bi-sun-fill"></i>
+          </button>
+
+          <!-- Save Button -->
+          <button id="btn-save" class="btn btn-gradient d-flex align-items-center gap-2">
+            <span id="save-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            <i id="save-icon" class="bi bi-cloud-arrow-up-fill"></i>
+            <span>Save Eod Logs</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container my-4">
+    <!-- Quick Stats & Instructions -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="glass-card p-4">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+              <h2 class="h5 mb-1"><i class="bi bi-chat-left-quote me-2 text-primary"></i>Daily Log Entry</h2>
+              <p class="text-secondary mb-0">Fill in any card below. When you click Save, active entries will be compiled and prepended to your daily journal.</p>
+            </div>
+            <div class="text-md-end text-start">
+              <div class="text-secondary small">Current Date</div>
+              <div class="fw-bold h5 mb-0 text-primary" id="current-date-display">2026-05-26</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS GRID -->
+    <div class="row row-cols-1 row-cols-lg-2 g-4" id="cards-container">
+      <!-- Cards will be dynamically injected here -->
+    </div>
+  </main>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-content-glass">
+        <div class="modal-header px-4 pt-4 pb-2">
+          <h5 class="modal-title d-flex align-items-center gap-2" id="settingsModalLabel">
+            <i class="bi bi-shield-lock-fill text-primary"></i> GitHub Configuration
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="settings-close-btn"></button>
+        </div>
+        <div class="modal-body px-4 py-3">
+          <form id="settings-form" novalidate>
+            <!-- GitHub PAT -->
+            <div class="mb-3">
+              <label for="input-pat" class="form-label small fw-semibold text-secondary">GitHub Personal Access Token (PAT)</label>
+              <div class="input-group">
+                <span class="input-group-text bg-black border-secondary-subtle border-end-0 text-secondary" style="border-radius: 10px 0 0 10px;"><i class="bi bi-key-fill"></i></span>
+                <input type="password" class="form-control bg-black text-white border-secondary-subtle border-start-0" id="input-pat" placeholder="ghp_xxxxxxxxxxxx" required style="border-radius: 0 10px 10px 0;">
+                <button class="btn btn-outline-secondary border-secondary-subtle" type="button" id="btn-toggle-pat" style="border-radius: 0 10px 10px 0;"><i class="bi bi-eye-fill"></i></button>
+              </div>
+              <div class="form-text small text-secondary mt-1">Stored securely in your local browser's <code>localStorage</code>.</div>
+            </div>
+
+            <!-- Repo Path Details (Collapsible/Advanced) -->
+            <div class="border-top border-secondary-subtle my-3 pt-3">
+              <p class="small fw-semibold text-secondary mb-2">Repository Details</p>
+              
+              <!-- Owner & Repo -->
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label for="input-owner" class="form-label small text-secondary mb-1">Owner</label>
+                  <input type="text" class="form-control bg-black text-white border-secondary-subtle small-input" id="input-owner" value="EEAAtech" required style="border-radius: 8px;">
+                </div>
+                <div class="col-6">
+                  <label for="input-repo" class="form-label small text-secondary mb-1">Repo Name</label>
+                  <input type="text" class="form-control bg-black text-white border-secondary-subtle small-input" id="input-repo" value="Loggy" required style="border-radius: 8px;">
+                </div>
+              </div>
+
+              <!-- Branch & Journals Path -->
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="input-branch" class="form-label small text-secondary mb-1">Branch</label>
+                  <input type="text" class="form-control bg-black text-white border-secondary-subtle small-input" id="input-branch" value="main" required style="border-radius: 8px;">
+                </div>
+                <div class="col-6">
+                  <label for="input-path" class="form-label small text-secondary mb-1">Folder Path</label>
+                  <input type="text" class="form-control bg-black text-white border-secondary-subtle small-input" id="input-path" value="journals" required style="border-radius: 8px;">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer px-4 pb-4 pt-2 d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-glass py-2" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" form="settings-form" class="btn btn-gradient py-2">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-4">
+    <div id="status-toast" class="toast toast-glass" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header toast-glass-header d-flex justify-content-between align-items-center py-2">
+        <strong id="toast-title" class="me-auto text-primary"><i class="bi bi-info-circle-fill me-2"></i>Status Update</strong>
+        <small class="text-secondary" id="toast-time">Just now</small>
+        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body py-3" id="toast-message">
+        Your settings have been updated.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- BOOTSTRAP JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <!-- LOGIC SCRIPT -->
+  <script>
+    // Tag definition list
+    const TAGS = [
+      "#$Physical/Cardio",
+      "#$Physical/Bodio",
+      "#$Mental/Read",
+      "#$Rails",
+      "#$Home",
+      "#$Mental/Study",
+      "#$Finance",
+      "#$Maintenance",
+      "#$Music",
+      "#$Modx",
+      "#$Logic",
+      "#$Friends",
+      "#$Mental/Study/NapoleonHill15LawsOfSuccess",
+      "#$TTM"
+    ];
+
+    // Form inputs and DOM cache
+    let settings = {
+      pat: "",
+      owner: "EEAAtech",
+      repo: "Loggy",
+      branch: "main",
+      folder: "journals"
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Initialize display components
+      initDateDisplay();
+      loadSettings();
+      renderCards();
+      setupThemeToggle();
+      setupPATVisibilityToggle();
+      
+      // 2. Attach settings form handler
+      const settingsForm = document.getElementById("settings-form");
+      settingsForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        saveSettingsForm();
+      });
+
+      // 3. Attach save handler
+      document.getElementById("btn-save").addEventListener("click", saveJournals);
+    });
+
+    // Display current date
+    function initDateDisplay() {
+      // Generate formatted date in system local time (YYYY_MM_DD)
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      
+      const formattedDate = `${yyyy}-${mm}-${dd}`;
+      document.getElementById("current-date-display").textContent = formattedDate;
+    }
+
+    // Retrieve settings from localStorage
+    function loadSettings() {
+      const stored = localStorage.getItem("loggy_sync_settings");
+      if (stored) {
+        try {
+          settings = JSON.parse(stored);
+        } catch (e) {
+          console.error("Error parsing stored settings:", e);
+        }
+      }
+      
+      // Pre-populate input fields
+      document.getElementById("input-pat").value = settings.pat || "";
+      document.getElementById("input-owner").value = settings.owner || "EEAAtech";
+      document.getElementById("input-repo").value = settings.repo || "Loggy";
+      document.getElementById("input-branch").value = settings.branch || "main";
+      document.getElementById("input-path").value = settings.folder || "journals";
+
+      updatePATStatusBadge();
+    }
+
+    // Save settings from form to localStorage
+    function saveSettingsForm() {
+      settings.pat = document.getElementById("input-pat").value.trim();
+      settings.owner = document.getElementById("input-owner").value.trim();
+      settings.repo = document.getElementById("input-repo").value.trim();
+      settings.branch = document.getElementById("input-branch").value.trim();
+      settings.folder = document.getElementById("input-path").value.trim();
+
+      localStorage.setItem("loggy_sync_settings", JSON.stringify(settings));
+      updatePATStatusBadge();
+      
+      // Close settings modal programmatically
+      const modalElement = document.getElementById("settingsModal");
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+
+      showToast("Configuration Saved", "Successfully stored your GitHub details locally in this browser.", "success");
+    }
+
+    // Update status badge at the top
+    function updatePATStatusBadge() {
+      const badge = document.getElementById("pat-badge");
+      if (settings.pat) {
+        badge.className = "badge bg-success-subtle text-success border border-success-subtle badge-status align-middle";
+        badge.innerHTML = `<i class="bi bi-shield-check me-1"></i>PAT Configured`;
+      } else {
+        badge.className = "badge bg-danger-subtle text-danger border border-danger-subtle badge-status align-middle";
+        badge.innerHTML = `<i class="bi bi-shield-x me-1"></i>PAT Missing`;
+      }
+    }
+
+    // Set up toggle visibility for password PAT field
+    function setupPATVisibilityToggle() {
+      const field = document.getElementById("input-pat");
+      const btn = document.getElementById("btn-toggle-pat");
+      
+      btn.addEventListener("click", () => {
+        if (field.type === "password") {
+          field.type = "text";
+          btn.innerHTML = `<i class="bi bi-eye-slash-fill"></i>`;
+        } else {
+          field.type = "password";
+          btn.innerHTML = `<i class="bi bi-eye-fill"></i>`;
+        }
+      });
+    }
+
+    // Dynamic Card Builder
+    function renderCards() {
+      const container = document.getElementById("cards-container");
+      container.innerHTML = "";
+
+      TAGS.forEach((tag, idx) => {
+        const otherTags = TAGS.filter(t => t !== tag);
+        
+        // Build card HTML
+        const col = document.createElement("div");
+        col.className = "col";
+        col.innerHTML = `
+          <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between" id="card-${idx}">
+            <div>
+              <!-- Header Row -->
+              <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                <span class="form-label-tag">
+                  <i class="bi bi-tag-fill me-2 small"></i>${tag}
+                </span>
+                
+                <div class="d-flex align-items-center gap-2">
+                  <label for="select-${idx}" class="text-secondary small mb-0 fw-medium">Disrupt:</label>
+                  <select id="select-${idx}" class="form-select form-select-sm disrupt-select d-inline-block w-auto" style="min-width: 150px;">
+                    <option value="" selected>-- None --</option>
+                    ${otherTags.map(ot => `<option value="${ot}">${ot}</option>`).join("")}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Textarea -->
+              <div class="position-relative">
+                <textarea 
+                  id="textarea-${idx}" 
+                  class="form-control log-textarea w-100" 
+                  placeholder="Enter details for ${tag}..."
+                  data-tag="${tag}"
+                ></textarea>
+              </div>
+            </div>
+            
+            <!-- Dynamic character count/indicator bar -->
+            <div class="indicator-bar" id="indicator-${idx}"></div>
+          </div>
+        `;
+        
+        container.appendChild(col);
+
+        // Track changes on textarea to highlight active cards
+        const textarea = col.querySelector(`#textarea-${idx}`);
+        const card = col.querySelector(`#card-${idx}`);
+        const indicator = col.querySelector(`#indicator-${idx}`);
+
+        textarea.addEventListener("input", () => {
+          if (textarea.value.trim().length > 0) {
+            card.classList.add("active-card");
+            indicator.style.width = "100%";
+          } else {
+            card.classList.remove("active-card");
+            indicator.style.width = "0%";
+          }
+        });
+      });
+    }
+
+    // Toast visual feedback
+    function showToast(title, message, type = "info") {
+      const toastEl = document.getElementById("status-toast");
+      const titleEl = document.getElementById("toast-title");
+      const msgEl = document.getElementById("toast-message");
+      const timeEl = document.getElementById("toast-time");
+
+      // Set content
+      timeEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      msgEl.textContent = message;
+      
+      let icon = "bi-info-circle-fill";
+      let colorClass = "text-primary";
+      
+      if (type === "success") {
+        icon = "bi-check-circle-fill";
+        colorClass = "text-success";
+      } else if (type === "error") {
+        icon = "bi-exclamation-triangle-fill";
+        colorClass = "text-danger";
+      } else if (type === "warning") {
+        icon = "bi-exclamation-circle-fill";
+        colorClass = "text-warning";
+      }
+
+      titleEl.className = `me-auto ${colorClass} fw-bold d-flex align-items-center gap-2`;
+      titleEl.innerHTML = `<i class="bi ${icon}"></i> ${title}`;
+
+      const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+      toast.show();
+    }
+
+    // Theme Switcher
+    function setupThemeToggle() {
+      const btn = document.getElementById("btn-theme-toggle");
+      const icon = document.getElementById("theme-icon");
+      const html = document.documentElement;
+
+      // Detect stored preference or system preference
+      const storedTheme = localStorage.getItem("loggy_theme") || "dark";
+      html.setAttribute("data-bs-theme", storedTheme);
+      updateThemeIcon(storedTheme);
+
+      btn.addEventListener("click", () => {
+        const currentTheme = html.getAttribute("data-bs-theme");
+        const nextTheme = currentTheme === "dark" ? "light" : "dark";
+        
+        html.setAttribute("data-bs-theme", nextTheme);
+        localStorage.setItem("loggy_theme", nextTheme);
+        updateThemeIcon(nextTheme);
+      });
+
+      function updateThemeIcon(theme) {
+        if (theme === "dark") {
+          icon.className = "bi bi-sun-fill text-warning";
+        } else {
+          icon.className = "bi bi-moon-stars-fill text-primary";
+        }
+      }
+    }
+
+    // UTF-8 Friendly Base64 Encoder / Decoder
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    function base64ToUtf8(str) {
+      const binary = atob(str);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new TextDecoder().decode(bytes);
+    }
+
+    // CORE GITHUB SAVE LOGIC
+    async function saveJournals() {
+      // 1. Pre-validation checks
+      if (!settings.pat) {
+        showToast("Authentication Required", "Please configure your GitHub Personal Access Token (PAT) in Settings first.", "warning");
+        const modal = new bootstrap.Modal(document.getElementById("settingsModal"));
+        modal.show();
+        return;
+      }
+
+      // Gather active entries
+      const entries = [];
+      TAGS.forEach((tag, idx) => {
+        const text = document.getElementById(`textarea-${idx}`).value.trim();
+        const disruptVal = document.getElementById(`select-${idx}`).value;
+
+        if (text) {
+          if (disruptVal) {
+            // Disrupt mode
+            // Format: - [Dropdown value] [textarea text] #$EodLog #$Disrupt -> [textarea tag]
+            entries.push(`- ${disruptVal} ${text} #$EodLog #$Disrupt -> ${tag}`);
+          } else {
+            // Standard mode
+            // Format: - [textarea text] #$EodLog [textarea tag]
+            entries.push(`- ${text} #$EodLog ${tag}`);
+          }
+        }
+      });
+
+      if (entries.length === 0) {
+        showToast("No Content", "Please type some journal notes in at least one card before saving.", "warning");
+        return;
+      }
+
+      // Format log lines compiled for prepending
+      // Combine entries together. Since they prepend today immediately without gap, we join them by newlines.
+      const compiledNewEntries = entries.join("\n") + "\n";
+
+      // Date calculations for filename
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const filename = `${yyyy}_${mm}_${dd}.md`;
+      const filePath = `${settings.folder}/${filename}`;
+
+      // UI visual state - start saving
+      setSavingState(true);
+
+      try {
+        const repoUrl = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${filePath}`;
+        
+        // Try fetching existing daily journal file
+        let existingContent = "";
+        let existingSha = null;
+        let fileExists = false;
+
+        const getResponse = await fetch(repoUrl, {
+          method: "GET",
+          headers: {
+            "Authorization": `token ${settings.pat}`,
+            "Accept": "application/vnd.github.v3+json"
+          },
+          cache: "no-store"
+        });
+
+        if (getResponse.status === 200) {
+          const fileData = await getResponse.json();
+          existingSha = fileData.sha;
+          existingContent = base64ToUtf8(fileData.content);
+          fileExists = true;
+        } else if (getResponse.status !== 404) {
+          // Some other GitHub error
+          const errorData = await getResponse.json().catch(() => ({ message: "Unknown API error" }));
+          throw new Error(`Failed to fetch file status. GitHub responded with status ${getResponse.status}: ${errorData.message}`);
+        }
+
+        // Prepend new content to existing file content
+        const finalContent = compiledNewEntries + existingContent;
+        const encodedContent = utf8ToBase64(finalContent);
+
+        // Get current local time formatted for the commit message: YYYY-MM-DD HH:MM:SS
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        const commitMessage = `EodLog ${dateStr} ${timeStr}`;
+
+        // Prepare request body
+        const putBody = {
+          message: commitMessage,
+          content: encodedContent,
+          branch: settings.branch
+        };
+        if (existingSha) {
+          putBody.sha = existingSha;
+        }
+
+        // Put the updated file content back to GitHub
+        const putResponse = await fetch(repoUrl, {
+          method: "PUT",
+          headers: {
+            "Authorization": `token ${settings.pat}`,
+            "Accept": "application/vnd.github.v3+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(putBody)
+        });
+
+        if (!putResponse.ok) {
+          const putError = await putResponse.json().catch(() => ({ message: "Unknown PUT error" }));
+          throw new Error(`Failed to save journal file. GitHub responded with status ${putResponse.status}: ${putError.message}`);
+        }
+
+        // Success response
+        const successMessage = fileExists 
+          ? `Prepended ${entries.length} log lines to existing ${filename}.` 
+          : `Created new journal ${filename} with ${entries.length} log lines.`;
+
+        showToast("Journal Synchronized", successMessage, "success");
+
+      } catch (err) {
+        console.error("Save Error:", err);
+        showToast("Sync Failed", err.message || "An unexpected network error occurred while communicating with GitHub.", "error");
+      } finally {
+        setSavingState(false);
+      }
+    }
+
+    // Manage visual saving animation state
+    function setSavingState(isSaving) {
+      const btn = document.getElementById("btn-save");
+      const spinner = document.getElementById("save-spinner");
+      const icon = document.getElementById("save-icon");
+      const inputs = document.querySelectorAll(".log-textarea, .disrupt-select, #btn-settings, #btn-theme-toggle");
+
+      if (isSaving) {
+        btn.disabled = true;
+        spinner.classList.remove("d-none");
+        icon.classList.add("d-none");
+        inputs.forEach(input => input.disabled = true);
+      } else {
+        btn.disabled = false;
+        spinner.classList.add("d-none");
+        icon.classList.remove("d-none");
+        inputs.forEach(input => input.disabled = false);
+      }
+    }
+  </script>
+</body>
+</html>

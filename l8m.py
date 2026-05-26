@@ -260,7 +260,7 @@ if st.session_state.score:
             📄 Save Sheet Music as PDF
         </button>
         """
-        components.html(osmd_html, height=1000, scrolling=True)
+        components.html(osmd_html, height=1500, scrolling=True)
     except Exception as e:
         st.error(f"Error generating preview: {e}")
 
