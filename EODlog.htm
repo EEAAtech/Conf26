@@ -347,8 +347,10 @@
               <p class="text-secondary mb-0">Fill in any card below. When you click Save, active entries will be compiled and prepended to your daily journal.</p>
             </div>
             <div class="text-md-end text-start">
-              <div class="text-secondary small">Current Date</div>
-              <div class="fw-bold h5 mb-0 text-primary" id="current-date-display">2026-05-26</div>
+              <div class="d-flex align-items-center gap-3">
+                <label for="log-date-picker" class="text-secondary small mb-0 fw-medium">Date:</label>
+                <input type="date" id="log-date-picker" class="form-control form-control-sm" style="max-width: 150px;">
+              </div>
             </div>
           </div>
         </div>
@@ -446,7 +448,7 @@
     const TAGS = [
       "#$Physical/Cardio",
       "#$Physical/Bodio",
-      "#$Mental/Read",
+      "#$Mental/Study/NapoleonHill15LawsOfSuccess",
       "#$Business",
       "#$Home",
       "#$Music",
@@ -456,8 +458,7 @@
       "#$Modx",
       "#$Logic",
       "#$Friends",
-      "#$Business",
-      "#$Mental/Study/NapoleonHill15LawsOfSuccess",
+      "#$Mental/Read",
       "#$Migraine",
       "#$PhotoVideo",
       "#$Town",
@@ -473,10 +474,13 @@
       branch: "main",
       folder: "journals"
     };
+    
+    // State variable for the selected date (defaults to today)
+    let selectedDate = new Date();
 
     document.addEventListener("DOMContentLoaded", () => {
       // 1. Initialize display components
-      initDateDisplay();
+      initDateDisplay(); // Now handles setting the default date picker value
       loadSettings();
       renderCards();
       setupThemeToggle();
@@ -493,16 +497,34 @@
       document.getElementById("btn-save").addEventListener("click", saveJournals);
     });
 
-    // Display current date
+    // Display current date and set up the date picker listener
     function initDateDisplay() {
-      // Generate formatted date in system local time (YYYY_MM_DD)
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      
-      const formattedDate = `${yyyy}-${mm}-${dd}`;
-      document.getElementById("current-date-display").textContent = formattedDate;
+      const datePicker = document.getElementById("log-date-picker");
+      if (datePicker) {
+        // Set default value to today's date in YYYY-MM-DD format
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        datePicker.value = `${yyyy}-${mm}-${dd}`;
+
+        // Event listener for date change
+        datePicker.addEventListener('change', (e) => {
+          selectedDate = new Date(e.target.value);
+          // Update the display text to reflect the selected date
+          const year = selectedDate.getFullYear();
+          const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+          const day = String(selectedDate.getDate()).padStart(2, '0');
+          document.getElementById("current-date-display").textContent = `${year}-${month}-${day}`;
+        });
+      } else {
+         // Fallback for old structure if date picker isn't found
+         const now = new Date();
+         const yyyy = now.getFullYear();
+         const mm = String(now.getMonth() + 1).padStart(2, '0');
+         const dd = String(now.getDate()).padStart(2, '0');
+         document.getElementById("current-date-display").textContent = `${yyyy}-${mm}-${dd}`;
+      }
     }
 
     // Retrieve settings from localStorage
@@ -754,14 +776,12 @@
       }
 
       // Format log lines compiled for prepending
-      // Combine entries together. Since they prepend today immediately without gap, we join them by newlines.
       const compiledNewEntries = entries.join("\n") + "\n";
 
-      // Date calculations for filename
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
+      // Date calculations for filename - USE SELECTED DATE HERE
+      const yyyy = selectedDate.getFullYear();
+      const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(selectedDate.getDate()).padStart(2, '0');
       const filename = `${yyyy}_${mm}_${dd}.md`;
       const filePath = `${settings.folder}/${filename}`;
 
@@ -801,9 +821,10 @@
         const encodedContent = utf8ToBase64(finalContent);
 
         // Get current local time formatted for the commit message: YYYY-MM-DD HH:MM:SS
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-        const dateStr = `${yyyy}-${mm}-${dd}`;
-        const commitMessage = `EodLog ${dateStr} ${timeStr}`;
+        // Use selectedDate for date part, but use actual run time for time part.
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        const dateStrForCommit = `${yyyy}-${mm}-${dd}`; // Use the selected date components for consistency
+        const commitMessage = `EodLog ${dateStrForCommit} ${timeStr}`;
 
         // Prepare request body
         const putBody = {
