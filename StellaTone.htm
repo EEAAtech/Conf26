@@ -1,376 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glassmorphism Tone Generator</title>
-    <!-- Google Fonts & FontAwesome for icons -->
-    <link href="https://googleapis.com" rel="stylesheet">
-    <link rel="stylesheet" href="https://cloudflare.com">
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            padding: 20px;
-        }
-
-        /* Ambient background glow elements */
-        .glow-1,
-        .glow-2 {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: 1;
-            opacity: 0.6;
-        }
-
-        .glow-1 {
-            width: 300px;
-            height: 300px;
-            background: #a855f7;
-            top: 15%;
-            left: -10%;
-        }
-
-        .glow-2 {
-            width: 250px;
-            height: 250px;
-            background: #06b6d4;
-            bottom: 15%;
-            right: -10%;
-        }
-
-        /* Glassmorphism Container optimized for Mobile Portrait */
-        .glass-container {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 400px;
-            height: 80vh;
-            max-height: 700px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 30px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
-            display: flex;
-            padding: 25px;
-            gap: 25px;
-        }
-
-        /* Left side container (Large Vertical Slider) */
-        .left-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            height: 100%;
-        }
-
-        /* Right side container split layout */
-        .right-column {
-            flex: 1.2;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-        }
-
-        .top-quarter {
-            height: 25%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            color: #ffffff;
-        }
-
-        .freq-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 5px;
-        }
-
-        .freq-display {
-            font-size: 2.2rem;
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-            line-height: 1.1;
-        }
-
-        .freq-unit {
-            font-size: 1.2rem;
-            font-weight: 400;
-            color: #06b6d4;
-        }
-
-        .middle-quarter {
-            height: 35%;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        /* Glassmorphic Play/Stop Button */
-        .ctrl-btn {
-            width: 85px;
-            height: 85px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            font-size: 1.8rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-        }
-
-        .ctrl-btn:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .ctrl-btn.playing {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.4);
-            color: #ef4444;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
-        }
-
-        .bottom-half {
-            height: 40%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding-bottom: 10px;
-        }
-
-        .vol-label {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Sliders Styling styling */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            outline: none;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Horizontal Volume Slider Setup */
-        .vol-slider {
-            width: 100%;
-            height: 8px;
-        }
-
-        /* Vertical Frequency Slider Setup */
-        .freq-slider {
-            position: absolute;
-            width: calc(80vh - 100px);
-            max-width: 580px;
-            height: 15px;
-            transform: rotate(-90deg);
-            z-index: 3;
-        }
-
-        /* Custom Track Sliders Windows / Webkit */
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 2px solid #06b6d4;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
-            transition: transform 0.1s;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:active {
-            transform: scale(1.2);
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tone Generator</title>
+<style>
+:root{
+  --text:#14213d; --muted:#3b4a6b; --glass:rgba(255,255,255,.38); --stroke:rgba(255,255,255,.7);
+  --shadow:rgba(40,50,110,.25); --accent:#5b5bf0; --accent2:#c04bd8; --track:rgba(20,33,61,.18);
+  --bg1:#9ec5ff; --bg2:#e0b3ff; --bg3:#ffd1c2; --blob1:#6ea8ff; --blob2:#ff8fd0; --blob3:#7fe8d0;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --text:#f2f5ff; --muted:#b8c2e6; --glass:rgba(255,255,255,.09); --stroke:rgba(255,255,255,.22);
+    --shadow:rgba(0,0,0,.45); --accent:#8a8aff; --accent2:#e06bf0; --track:rgba(255,255,255,.2);
+    --bg1:#0f1535; --bg2:#2a1450; --bg3:#0d2a40; --blob1:#3f55d9; --blob2:#a8359f; --blob3:#1d9a86;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --text:#f2f5ff; --muted:#b8c2e6; --glass:rgba(255,255,255,.09); --stroke:rgba(255,255,255,.22);
+  --shadow:rgba(0,0,0,.45); --accent:#8a8aff; --accent2:#e06bf0; --track:rgba(255,255,255,.2);
+  --bg1:#0f1535; --bg2:#2a1450; --bg3:#0d2a40; --blob1:#3f55d9; --blob2:#a8359f; --blob3:#1d9a86;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;height:100%;overflow:hidden;color:var(--text);background:linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3));
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  user-select:none;-webkit-user-select:none;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg1)}
+.blob{position:fixed;border-radius:50%;filter:blur(50px);opacity:.75;z-index:0}
+.b1{width:60vmin;height:60vmin;background:var(--blob1);top:-8%;left:-15%}
+.b2{width:55vmin;height:55vmin;background:var(--blob2);bottom:5%;right:-15%}
+.b3{width:45vmin;height:45vmin;background:var(--blob3);top:40%;left:25%}
+.app{position:relative;z-index:1;height:100%;display:grid;grid-template-columns:44% 1fr;gap:12px;padding:12px}
+.glass{
+  background:var(--glass);border:1px solid var(--stroke);border-radius:24px;
+  -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+  box-shadow:0 8px 32px var(--shadow), inset 0 1px 0 rgba(255,255,255,.35);
+}
+h2{margin:0;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.freq{display:flex;flex-direction:column;padding:16px 10px 16px 14px;min-height:0}
+.vbox{flex:1;display:flex;gap:6px;margin-top:10px;min-height:0}
+.hit{width:60px;position:relative;touch-action:none;cursor:pointer;flex:none}
+.span{position:absolute;left:50%;top:26px;bottom:26px;width:0}
+.vbox .rail{position:absolute;left:-9px;width:18px;top:0;bottom:0;border-radius:9px;background:var(--track)}
+.vbox .fill{position:absolute;left:-9px;width:18px;bottom:0;border-radius:9px;background:linear-gradient(0deg,var(--accent),var(--accent2))}
+.thumb{
+  position:absolute;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.85);
+  border:2px solid var(--stroke);box-shadow:0 4px 14px var(--shadow);transform:translate(-50%,50%);
+  display:grid;place-items:center;
+}
+.thumb::after{content:"";width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.vbox .thumb{left:0}
+.hit:focus-visible,.wave:focus-visible,.play:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.vscale{position:relative;flex:1;margin:26px 0}
+.vscale span{position:absolute;left:0;transform:translateY(50%);font-size:.78rem;font-weight:600;white-space:nowrap}
+.vscale span::before{content:"";display:inline-block;width:8px;height:2px;background:var(--muted);vertical-align:middle;margin-right:5px}
+.note{font-size:.62rem;color:var(--muted);margin-top:6px;text-align:center}
+.right{display:flex;flex-direction:column;gap:12px;min-height:0}
+.readout{flex:0 0 25%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:10px;text-align:center}
+.readout output{display:block;font-weight:800;font-size:clamp(1.9rem,10vw,2.7rem);line-height:1.05;margin-top:6px;font-variant-numeric:tabular-nums}
+.readout small{font-size:1rem;font-weight:700;color:var(--muted)}
+.play{
+  display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;font:inherit;font-weight:700;font-size:1.1rem;
+  color:#fff;border:1px solid var(--stroke);border-radius:24px;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 24px var(--shadow);
+}
+.play svg{width:26px;height:26px;fill:#fff}
+.play.on{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(192,75,216,.25),0 8px 24px var(--shadow)}}
+@media (prefers-reduced-motion:reduce){.play.on{animation:none}}
+.waves{padding:12px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.wave{
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;font:inherit;font-size:.74rem;font-weight:600;
+  color:var(--text);background:rgba(255,255,255,.12);border:1px solid var(--stroke);border-radius:14px;cursor:pointer;
+}
+.wave svg{width:34px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wave[aria-checked="true"]{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.vol{margin-top:auto;padding:14px 14px 12px}
+.vol .head{display:flex;justify-content:space-between;align-items:baseline}
+.vol output{font-weight:800}
+.hbox{margin-top:6px}
+.hhit{height:52px;position:relative;touch-action:none;cursor:pointer}
+.hspan{position:absolute;top:50%;left:22px;right:22px;height:0}
+.hspan .rail{position:absolute;top:-8px;height:16px;left:-8px;right:-8px;border-radius:8px;background:var(--track)}
+.hspan .fill{position:absolute;top:-8px;height:16px;left:-8px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.hspan .thumb{top:0;transform:translate(-50%,-50%)}
+.hscale{position:relative;height:18px;margin:0 22px}
+.hscale span{position:absolute;transform:translateX(-50%);font-size:.7rem;font-weight:600}
+</style>
 </head>
-
 <body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
 
-    <div class="glow-1"></div>
-    <div class="glow-2"></div>
-
-    <div class="glass-container">
-        <!-- Left Side: Frequency Slider -->
-        <div class="left-column">
-            <input type="range" id="frequency" class="freq-slider" min="20" max="20000" value="440" step="1">
+<main class="app">
+  <section class="glass freq" aria-labelledby="fl">
+    <h2 id="fl">Frequency</h2>
+    <div class="vbox">
+      <div class="hit" id="fhit" role="slider" tabindex="0" aria-labelledby="fl" aria-orientation="vertical"
+           aria-valuemin="20" aria-valuemax="20000" aria-valuenow="440" aria-valuetext="440 hertz">
+        <div class="span" id="fspan">
+          <div class="rail"></div><div class="fill" id="ffill"></div><div class="thumb" id="fthumb"></div>
         </div>
-
-        <!-- Right Side: Outputs & Volume -->
-        <div class="right-column">
-            <div class="top-quarter">
-                <div class="freq-label">Frequency</div>
-                <div class="freq-display"><span id="freq-val">440</span><span class="freq-unit"> Hz</span></div>
-            </div>
-
-            <div class="middle-quarter">
-                <button id="play-btn" class="ctrl-btn" aria-label="Play tone">
-                    <!-- Inline Local SVG Play Shape -->
-                    <svg class="icon-play" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    <!-- Inline Local SVG Stop Shape -->
-                    <svg class="icon-stop" viewBox="0 0 24 24">
-                        <path d="M6 6h12v12H6z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="bottom-half">
-                <div class="vol-label">
-                    <i class="fa-solid fa-volume-high"></i> Volume
-                </div>
-                <input type="range" id="volume" class="vol-slider" min="0" max="1" value="0.5" step="0.01">
-            </div>
-        </div>
+      </div>
+      <div class="vscale" id="fscale" aria-hidden="true"></div>
     </div>
+    <div class="note">Logarithmic scale · Hz</div>
+  </section>
 
-    <script>
-        // DOM Elements
-        const freqSlider = document.getElementById('frequency');
-        const freqVal = document.getElementById('freq-val');
-        const volSlider = document.getElementById('volume');
-        const playBtn = document.getElementById('play-btn');
-        const btnIcon = document.getElementById('btn-icon');
+  <div class="right">
+    <section class="glass readout" aria-live="off">
+      <h2 id="rl">Current frequency</h2>
+      <output for="fhit" aria-labelledby="rl"><span id="fval">440</span> <small>Hz</small></output>
+    </section>
 
-        // Web Audio API Elements
-        let audioCtx = null;
-        let oscillator = null;
-        let gainNode = null;
-        let isPlaying = false;
+    <button class="play" id="play" type="button" aria-label="Play tone">
+      <span id="icon"></span><span id="ptext">Play</span>
+    </button>
 
-        // Logarithmic Mapping logic for natural human hearing tracking
-        // Min/max frequencies
-        const minFreq = 20;
-        const maxFreq = 20000;
+    <section class="glass waves" aria-labelledby="wl">
+      <h2 id="wl">Wave type</h2>
+      <div class="wgrid" role="radiogroup" aria-labelledby="wl">
+        <button class="wave" type="button" role="radio" aria-checked="true" data-type="sine"><svg viewBox="0 0 24 12"><path d="M1 6C4 -2 8 -2 12 6S20 14 23 6"/></svg>Sine</button>
+        <button class="wave" type="button" role="radio" aria-checked="false" data-type="square"><svg viewBox="0 0 24 12"><path d="M1 10V2h11v8h11V2"/></svg>Square</button>
+        <button class="wave" type="button" role="radio" aria-checked="false" data-type="triangle"><svg viewBox="0 0 24 12"><path d="M1 10L6 2l6 8 6-8 5 8"/></svg>Triangle</button>
+        <button class="wave" type="button" role="radio" aria-checked="false" data-type="sawtooth"><svg viewBox="0 0 24 12"><path d="M1 10L8 2v8l7-8v8l7-8"/></svg>Sawtooth</button>
+      </div>
+    </section>
 
-        // Convert dynamic slider log scale internally 
-        function logPosition(value) {
-            const minP = 20;
-            const maxP = 20000;
-            const minV = Math.log(minFreq);
-            const maxV = Math.log(maxFreq);
-            const scale = (maxV - minV) / (maxP - minP);
-            return Math.exp(minV + scale * (value - minP));
-        }
+    <section class="glass vol" aria-labelledby="vl">
+      <div class="head"><h2 id="vl">Volume</h2><output id="vval" for="vhit">30%</output></div>
+      <div class="hbox">
+        <div class="hhit" id="vhit" role="slider" tabindex="0" aria-labelledby="vl"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="30" aria-valuetext="30 percent">
+          <div class="hspan" id="vspan">
+            <div class="rail"></div><div class="fill" id="vfill"></div><div class="thumb" id="vthumb"></div>
+          </div>
+        </div>
+        <div class="hscale" id="vscale" aria-hidden="true"></div>
+      </div>
+    </section>
+  </div>
+</main>
 
-        // Initialize Audio context infrastructure safely
-        function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            oscillator = audioCtx.createOscillator();
-            gainNode = audioCtx.createGain();
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const MIN=20, MAX=20000, RATIO=Math.log(MAX/MIN);
+  const pToF=p=>Math.round(MIN*Math.exp(RATIO*p));
+  const fToP=f=>Math.log(f/MIN)/RATIO;
+  const fmt=n=>n.toLocaleString('en-US');
 
-            oscillator.type = 'sine';
+  /* audio state */
+  let ctx=null, osc=null, gain=null, playing=false, wave='sine';
+  let fp=fToP(440), vp=0.3;
+  const vGain=p=>p*p*0.9; // perceptual curve
 
-            // Set Initial Values
-            oscillator.frequency.setValueAtTime(freqSlider.value, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(volSlider.value, audioCtx.currentTime);
+  /* generic slider */
+  function makeSlider(o){
+    function setP(p,silent){
+      p=Math.min(1,Math.max(0,p)); o.set(p);
+      const pc=(p*100)+'%';
+      if(o.vertical){o.thumb.style.bottom=pc;o.fill.style.height=pc}
+      else{o.thumb.style.left=pc;o.fill.style.width='calc('+pc+' + 8px)'}
+      o.onInput(p);
+    }
+    function fromEvent(e){
+      const r=o.span.getBoundingClientRect();
+      return o.vertical?(r.bottom-e.clientY)/r.height:(e.clientX-r.left)/r.width;
+    }
+    let drag=false;
+    o.hit.addEventListener('pointerdown',e=>{drag=true;o.hit.setPointerCapture(e.pointerId);setP(fromEvent(e));e.preventDefault()});
+    o.hit.addEventListener('pointermove',e=>{if(drag)setP(fromEvent(e))});
+    const end=()=>{drag=false};
+    o.hit.addEventListener('pointerup',end);o.hit.addEventListener('pointercancel',end);
+    o.hit.addEventListener('keydown',e=>{
+      let d=0;
+      if(e.key==='ArrowUp'||e.key==='ArrowRight')d=o.step;
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft')d=-o.step;
+      else if(e.key==='PageUp')d=o.step*10;
+      else if(e.key==='PageDown')d=-o.step*10;
+      else if(e.key==='Home'){setP(0);e.preventDefault();return}
+      else if(e.key==='End'){setP(1);e.preventDefault();return}
+      if(d){setP(o.get()+d);e.preventDefault()}
+    });
+    setP(o.get());
+  }
 
-            // Connect graph
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-        }
+  /* tick labels */
+  [20,50,100,200,500,1000,2000,5000,10000,20000].forEach(f=>{
+    const s=document.createElement('span');
+    s.style.bottom=(fToP(f)*100)+'%';
+    s.textContent=f>=1000?(f/1000)+' kHz':f+' Hz';
+    $('fscale').appendChild(s);
+  });
+  [0,25,50,75,100].forEach(v=>{
+    const s=document.createElement('span');
+    s.style.left=v+'%'; s.textContent=v+'%';
+    $('vscale').appendChild(s);
+  });
 
-        // Toggle state function 
-        function togglePlayback() {
-            if (!isPlaying) {
-                // Instantiating Web Audio rules require context generation on direct user input triggers
-                if (!audioCtx) {
-                    initAudio();
-                } else if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+  /* frequency slider */
+  makeSlider({
+    vertical:true,hit:$('fhit'),span:$('fspan'),thumb:$('fthumb'),fill:$('ffill'),step:0.004,
+    get:()=>fp,set:p=>{fp=p},
+    onInput:p=>{
+      const f=pToF(p);
+      $('fval').textContent=fmt(f);
+      $('fhit').setAttribute('aria-valuenow',f);
+      $('fhit').setAttribute('aria-valuetext',fmt(f)+' hertz');
+      if(osc)osc.frequency.setTargetAtTime(f,ctx.currentTime,0.015);
+    }
+  });
 
-                // If previous oscillator ended, create a new one safely
-                if (!oscillator) {
-                    oscillator = audioCtx.createOscillator();
-                    oscillator.type = 'sine';
-                    oscillator.frequency.setValueAtTime(freqSlider.value, audioCtx.currentTime);
-                    oscillator.connect(gainNode);
-                }
+  /* volume slider */
+  makeSlider({
+    vertical:false,hit:$('vhit'),span:$('vspan'),thumb:$('vthumb'),fill:$('vfill'),step:0.01,
+    get:()=>vp,set:p=>{vp=p},
+    onInput:p=>{
+      const v=Math.round(p*100);
+      $('vval').textContent=v+'%';
+      $('vhit').setAttribute('aria-valuenow',v);
+      $('vhit').setAttribute('aria-valuetext',v+' percent');
+      if(gain)gain.gain.setTargetAtTime(vGain(p),ctx.currentTime,0.02);
+    }
+  });
 
-                oscillator.start();
-                isPlaying = true;
-                playBtn.classList.add('playing');
-                btnIcon.className = 'fa-solid fa-stop';
-            } else {
-                stopPlayback();
-            }
-        }
-        function stopPlayback() {
-            if (isPlaying && oscillator) {
-                oscillator.stop();
-                oscillator.disconnect();
-                oscillator = null; // Flush instance reference
-                isPlaying = false;
-                playBtn.classList.remove('playing');
-                btnIcon.className = 'fa-solid fa-play';
-            }
-        }
-        // Realtime Input Event Listeners
-        freqSlider.addEventListener('input', (e) => {
-            const frequency = parseInt(e.target.value);
-            // Format numbers nicely with commas for UX clarity (e.g. 15,000)
-            freqVal.textContent = frequency.toLocaleString();
-            if (isPlaying && oscillator) {
-                oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-            }
-        });
+  /* icons (inline SVG, no external services) */
+  const ICON_PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>';
+  const ICON_STOP='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>';
+  $('icon').innerHTML=ICON_PLAY;
 
-        volSlider.addEventListener('input', (e) => {
-            const volume = parseFloat(e.target.value);
-            if (isPlaying && gainNode) {
-                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
-            }
-        });
-        
-        playBtn.addEventListener('click', togglePlayback);
-        
-        // Safeguard rules to clear hardware resources gracefully if closing application layout
-        window.addEventListener('blur', () => {
-            if (isPlaying) stopPlayback();
-        });
-    </script>
+  /* audio */
+  async function start(){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!ctx)ctx=new AC();
+    if(ctx.state==='suspended')await ctx.resume();
+    osc=ctx.createOscillator();
+    gain=ctx.createGain();
+    osc.type=wave;
+    osc.frequency.value=pToF(fp);
+    gain.gain.value=0;
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.start();
+    gain.gain.setTargetAtTime(vGain(vp),ctx.currentTime,0.02);
+    playing=true;ui();
+  }
+  function stop(){
+    if(!osc)return;
+    const o=osc,g=gain;
+    g.gain.cancelScheduledValues(ctx.currentTime);
+    g.gain.setTargetAtTime(0,ctx.currentTime,0.015);
+    o.stop(ctx.currentTime+0.1);
+    o.onended=()=>{o.disconnect();g.disconnect()};
+    osc=null;gain=null;playing=false;ui();
+  }
+  function ui(){
+    const b=$('play');
+    b.classList.toggle('on',playing);
+    $('icon').innerHTML=playing?ICON_STOP:ICON_PLAY;
+    $('ptext').textContent=playing?'Stop':'Play';
+    b.setAttribute('aria-label',playing?'Stop tone':'Play tone');
+  }
+  $('play').addEventListener('click',()=>{playing?stop():start()});
 
-    <!-- FontAwesome Script for Icons -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  /* wave toggle */
+  document.querySelectorAll('.wave').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      wave=btn.dataset.type;
+      document.querySelectorAll('.wave').forEach(x=>x.setAttribute('aria-checked',x===btn));
+      if(osc)osc.type=wave;
+    });
+  });
+
+  /* stop when page is hidden */
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)stop()});
+})();
+</script>
 </body>
+</html>
