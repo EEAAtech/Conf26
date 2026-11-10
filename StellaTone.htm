@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glassmorphism Tone Generator</title>
+    <!-- Google Fonts & FontAwesome for icons -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cloudflare.com">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Ambient background glow elements */
+        .glow-1,
+        .glow-2 {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+            opacity: 0.6;
+        }
+
+        .glow-1 {
+            width: 300px;
+            height: 300px;
+            background: #a855f7;
+            top: 15%;
+            left: -10%;
+        }
+
+        .glow-2 {
+            width: 250px;
+            height: 250px;
+            background: #06b6d4;
+            bottom: 15%;
+            right: -10%;
+        }
+
+        /* Glassmorphism Container optimized for Mobile Portrait */
+        .glass-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 400px;
+            height: 80vh;
+            max-height: 700px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+            display: flex;
+            padding: 25px;
+            gap: 25px;
+        }
+
+        /* Left side container (Large Vertical Slider) */
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 100%;
+        }
+
+        /* Right side container split layout */
+        .right-column {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .top-quarter {
+            height: 25%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: #ffffff;
+        }
+
+        .freq-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 5px;
+        }
+
+        .freq-display {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            line-height: 1.1;
+        }
+
+        .freq-unit {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: #06b6d4;
+        }
+
+        .middle-quarter {
+            height: 35%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* Glassmorphic Play/Stop Button */
+        .ctrl-btn {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ctrl-btn.playing {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+
+        .bottom-half {
+            height: 40%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding-bottom: 10px;
+        }
+
+        .vol-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Sliders Styling styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            outline: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Horizontal Volume Slider Setup */
+        .vol-slider {
+            width: 100%;
+            height: 8px;
+        }
+
+        /* Vertical Frequency Slider Setup */
+        .freq-slider {
+            position: absolute;
+            width: calc(80vh - 100px);
+            max-width: 580px;
+            height: 15px;
+            transform: rotate(-90deg);
+            z-index: 3;
+        }
+
+        /* Custom Track Sliders Windows / Webkit */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #06b6d4;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+
+    <div class="glass-container">
+        <!-- Left Side: Frequency Slider -->
+        <div class="left-column">
+            <input type="range" id="frequency" class="freq-slider" min="20" max="20000" value="440" step="1">
+        </div>
+
+        <!-- Right Side: Outputs & Volume -->
+        <div class="right-column">
+            <div class="top-quarter">
+                <div class="freq-label">Frequency</div>
+                <div class="freq-display"><span id="freq-val">440</span><span class="freq-unit"> Hz</span></div>
+            </div>
+
+            <div class="middle-quarter">
+                <button id="play-btn" class="ctrl-btn" aria-label="Play tone">
+                    <!-- Inline Local SVG Play Shape -->
+                    <svg class="icon-play" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <!-- Inline Local SVG Stop Shape -->
+                    <svg class="icon-stop" viewBox="0 0 24 24">
+                        <path d="M6 6h12v12H6z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="bottom-half">
+                <div class="vol-label">
+                    <i class="fa-solid fa-volume-high"></i> Volume
+                </div>
+                <input type="range" id="volume" class="vol-slider" min="0" max="1" value="0.5" step="0.01">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const freqSlider = document.getElementById('frequency');
+        const freqVal = document.getElementById('freq-val');
+        const volSlider = document.getElementById('volume');
+        const playBtn = document.getElementById('play-btn');
+        const btnIcon = document.getElementById('btn-icon');
+
+        // Web Audio API Elements
+        let audioCtx = null;
+        let oscillator = null;
+        let gainNode = null;
+        let isPlaying = false;
+
+        // Logarithmic Mapping logic for natural human hearing tracking
+        // Min/max frequencies
+        const minFreq = 20;
+        const maxFreq = 20000;
+
+        // Convert dynamic slider log scale internally 
+        function logPosition(value) {
+            const minP = 20;
+            const maxP = 20000;
+            const minV = Math.log(minFreq);
+            const maxV = Math.log(maxFreq);
+            const scale = (maxV - minV) / (maxP - minP);
+            return Math.exp(minV + scale * (value - minP));
+        }
+
+        // Initialize Audio context infrastructure safely
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sine';
+
+            // Set Initial Values
+            oscillator.frequency.setValueAtTime(freqSlider.value, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(volSlider.value, audioCtx.currentTime);
+
+            // Connect graph
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+        }
+
+        // Toggle state function 
+        function togglePlayback() {
+            if (!isPlaying) {
+                // Instantiating Web Audio rules require context generation on direct user input triggers
+                if (!audioCtx) {
+                    initAudio();
+                } else if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                // If previous oscillator ended, create a new one safely
+                if (!oscillator) {
+                    oscillator = audioCtx.createOscillator();
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(freqSlider.value, audioCtx.currentTime);
+                    oscillator.connect(gainNode);
+                }
+
+                oscillator.start();
+                isPlaying = true;
+                playBtn.classList.add('playing');
+                btnIcon.className = 'fa-solid fa-stop';
+            } else {
+                stopPlayback();
+            }
+        }
+        function stopPlayback() {
+            if (isPlaying && oscillator) {
+                oscillator.stop();
+                oscillator.disconnect();
+                oscillator = null; // Flush instance reference
+                isPlaying = false;
+                playBtn.classList.remove('playing');
+                btnIcon.className = 'fa-solid fa-play';
+            }
+        }
+        // Realtime Input Event Listeners
+        freqSlider.addEventListener('input', (e) => {
+            const frequency = parseInt(e.target.value);
+            // Format numbers nicely with commas for UX clarity (e.g. 15,000)
+            freqVal.textContent = frequency.toLocaleString();
+            if (isPlaying && oscillator) {
+                oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            }
+        });
+
+        volSlider.addEventListener('input', (e) => {
+            const volume = parseFloat(e.target.value);
+            if (isPlaying && gainNode) {
+                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+            }
+        });
+        
+        playBtn.addEventListener('click', togglePlayback);
+        
+        // Safeguard rules to clear hardware resources gracefully if closing application layout
+        window.addEventListener('blur', () => {
+            if (isPlaying) stopPlayback();
+        });
+    </script>
+
+    <!-- FontAwesome Script for Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
